@@ -1,77 +1,40 @@
-# WindFarm Monitoring System – Backend
+# 🌬️ WindFarm Monitoring System (HKT Team)
 
-Hệ thống giám sát trang trại điện gió thời gian thực.  
-Backend xây dựng trên **FastAPI** + **MongoDB Atlas** + **Beanie ODM**, tích hợp AI fault prediction và WebSocket real-time.
+Dự án giám sát hệ thống tuabin gió (WindFarm) theo kiến trúc Microservices, tích hợp Trí tuệ nhân tạo (AI) để phát hiện bất thường và giám sát trực quan qua Datadog.
+
+## 🏗️ Kiến trúc hệ thống
+Hệ thống bao gồm 2 server độc lập:
+1. **Backend (Hoàng):** Chạy ở cổng `8000`. Nhận dữ liệu, lưu trữ MongoDB, tính toán features phái sinh và cung cấp API thống kê.
+2. **ML Service (Long):** Chạy ở cổng `8001`. Nhận dữ liệu từ Backend, chạy mô hình AI (RandomForest) để dự đoán bất thường, và gửi cảnh báo lên Datadog.
+
+## 🛠️ Công nghệ sử dụng
+*   **Backend:** Python, FastAPI, Beanie (MongoDB ODM), Motor.
+*   **ML Service:** Scikit-learn, Pandas, Joblib.
+*   **Monitoring:** Datadog (Metrics & Events).
+*   **Database:** MongoDB Atlas.
+*   **Public API:** Ngrok.
 
 ---
-```bash
-cd WindFarm/backend/WindFarm-Backend
 
-# Cài đặt dependencies
-pip install -r requirements.txt
-```
+## 🚀 Hướng dẫn cài đặt và chạy dự án
 
----
+### Bước 1: Chuẩn bị môi trường
+Yêu cầu máy tính đã cài đặt **Python 3.11+** và **MongoDB** (hoặc có tài khoản MongoDB Atlas).
 
-## Chạy Ứng Dụng
-
-### Development (có auto-reload)
-
-```bash
-cd WindFarm/backend/WindFarm-Backend
-
-# Dùng pip
-uvicorn src.main:app --reload --port 8000
-
-
-```
-## Cấu Hình Biến Môi Trường
-
-File `.env` nằm tại thư mục gốc `WindFarm-Backend/`. Các biến cần thiết:
-
+Tạo file `.env` ở thư mục gốc với nội dung sau:
 ```env
-# ── Application ──────────────────────────────────────────────
-APP_NAME=WindFarm Monitoring System
-APP_VERSION=0.1.0
-DEBUG=true
-HOST=0.0.0.0
-PORT=8000
+# Database
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/
+DATABASE_NAME=windfarm
 
-# ── MongoDB Atlas ────────────────────────────────────────────
-MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net
-MONGO_DB_NAME=<database_name>
+# Security
+API_TOKEN=secret-token-123
 
-# ── JWT Authentication ───────────────────────────────────────
-JWT_SECRET_KEY=your-super-secret-key-change-in-production
-JWT_ALGORITHM=HS256
-JWT_ACCESS_TOKEN_EXPIRE_MINUTES=60
+# Services
+ML_SERVICE_URL=http://127.0.0.1:8001
+BACKEND_URL=http://127.0.0.1:8000
 
-# ── Datadog (tùy chọn) ──────────────────────────────────────
-DD_AGENT_HOST=localhost
-DD_TRACE_AGENT_PORT=8126
-DD_SERVICE=windfarm-backend
-DD_ENV=development
-DD_API_KEY=your-datadog-api-key
-
-# ── AI Model ─────────────────────────────────────────────────
-MODEL_PATH=src/modules/AI_Agent/model_weights/fault_classifier.pkl
-```
-
->  **Lưu ý**: Thay `<username>`, `<password>`, `<cluster>`, `<database_name>` bằng thông tin MongoDB Atlas thực tế.
-
-
-
-## Tech Stack
-
-| Thành phần | Công nghệ |
-|---|---|
-| Framework | FastAPI |
-| Database | MongoDB Atlas (Motor + Beanie ODM) |
-| Auth | JWT (python-jose) + bcrypt (passlib) |
-| AI/ML | scikit-learn / XGBoost (.pkl model) |
-| Real-time | WebSocket (native FastAPI) |
-| Monitoring | Datadog (ddtrace) |
-| Data Processing | pandas, numpy |
-| Package Manager | uv / pip |
-
----
+# Datadog
+DD_API_KEY=your_datadog_api_key
+DD_APP_KEY=your_datadog_app_key
+DD_SITE=ap1.datadoghq.com
