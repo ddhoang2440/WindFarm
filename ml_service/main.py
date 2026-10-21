@@ -4,7 +4,12 @@ from datetime import datetime
 import httpx
 import joblib
 import os
-import time # <-- THÊM DÒNG NÀY ĐỂ TỰ SINH EVENT_ID
+import time
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load .env từ thư mục gốc project (một cấp trên ml_service/)
+load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env")
 
 app = FastAPI(title="ML Service (Long)")
 
@@ -73,14 +78,17 @@ async def predict(data: TelemetryData):
         }
 
         backend_url = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
-        api_token = os.getenv("API_TOKEN", "secret-token-123")
+        api_token = os.getenv("API_TOKEN", "")
 
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(
                     f"{backend_url}/api/v1/events",
                     json=event_payload,
-                    headers={"Authorization": f"Bearer {api_token}"},
+                    headers={
+                        "Authorization": f"Bearer {api_token}",
+                        "ngrok-skip-browser-warning": "true"
+                    },
                     timeout=5.0
                 )
                 print(f"[ML SERVICE] Đã báo Event. Status: {response.status_code}")
@@ -88,6 +96,10 @@ async def predict(data: TelemetryData):
                 print(f"[ML SERVICE] Lỗi khi gọi Backend: {e}")
 
     return {"is_anomaly": is_anomaly}
+
+@app.get("/")
+def root():
+    return {"message": "ML Service is running"}
 
 @app.get("/health")
 def health():

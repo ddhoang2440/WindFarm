@@ -9,12 +9,72 @@ from datadog_api_client.v1.model.series import Series
 from datadog_api_client.v1.model.event_create_request import EventCreateRequest
 from starlette.concurrency import run_in_threadpool
 
-# TODO: Khởi tạo Configuration cho Datadog
-# - Đọc DD_API_KEY, DD_APP_KEY, DD_SITE từ file .env
-# - Gán vào configuration.api_key và configuration.server_variables
+# 1. Khởi tạo Configuration cho Datadog
+configuration = Configuration()
+configuration.api_key["apiKeyAuth"] = os.getenv("DD_API_KEY", "")
+configuration.api_key["appKeyAuth"] = os.getenv("DD_APP_KEY", "")
+# SỬA LỖI TẠI ĐÂY: Mặc định là "datadoghq.com" nếu không tìm thấy biến môi trường
+configuration.server_variables["site"] = os.getenv("DD_SITE", "datadoghq.com")
 
-# TODO: Viết hàm _send_metrics_sync để gửi wind_speed, power_output, is_anomaly
-# TODO: Viết hàm async send_metrics_to_datadog (bọc run_in_threadpool)
+def _send_metrics_sync(asset_id: int, wind_speed: float, power_output: float, is_anomaly: bool):
+    """Hàm đồng bộ gửi metrics lên Datadog"""
+    with ApiClient(configuration) as api_client:
+        api_instance = MetricsApi(api_client)
+        tags = [f"asset_id:{asset_id}", "service:wind_turbine_ml"]
+        
+        current_time = int(datetime.now().timestamp())
 
-# TODO: Viết hàm _send_alert_sync để gửi Event cảnh báo (alert_type="error")
-# TODO: Viết hàm async send_alert_to_datadog (bọc run_in_threadpool)
+        series = [
+            Series(
+                metric="wind_turbine.wind_speed",
+                type="gauge",
+                points=[Point([current_time, wind_speed])],
+                tags=tags
+            ),
+            Series(
+                metric="wind_turbine.power_output",
+                type="gauge",
+                points=[Point([current_time, power_output])],
+                tags=tags
+            ),
+            Series(
+                metric="wind_turbine.is_anomaly",
+                type="gauge",
+                points=[Point([current_time, 1 if is_anomaly else 0])],
+                tags=tags
+            )
+        ]
+        
+        body = MetricsPayload(series=series)
+        try:
+            api_instance.submit_metrics(body=body)
+            print(f"[DATADOG] Đã gửi metrics cho tuabin {asset_id}")
+        except Exception as e:
+            print(f"[DATADOG] Lỗi khi gửi metrics: {e}")
+
+async def send_metrics_to_datadog(asset_id: int, wind_speed: float, power_output: float, is_anomaly: bool):
+    """Hàm async bọc run_in_threadpool cho send metrics"""
+    await run_in_threadpool(_send_metrics_sync, asset_id, wind_speed, power_output, is_anomaly)
+
+
+def _send_alert_sync(asset_id: int, message: str):
+    """Hàm đồng bộ gửi Event cảnh báo lên Datadog"""
+    with ApiClient(configuration) as api_client:
+        api_instance = EventsApi(api_client)
+        
+        body = EventCreateRequest(
+            title=f"⚠️ Phát hiện bất thường tại Tuabin {asset_id}",
+            text=message,
+            alert_type="error",
+            tags=[f"asset_id:{asset_id}", "service:wind_turbine_ml"]
+        )
+        
+        try:
+            api_instance.create_event(body=body)
+            print(f"[DATADOG] Đã gửi alert cho tuabin {asset_id}")
+        except Exception as e:
+            print(f"[DATADOG] Lỗi khi gửi alert: {e}")
+
+async def send_alert_to_datadog(asset_id: int, message: str):
+    """Hàm async bọc run_in_threadpool cho send alert"""
+    await run_in_threadpool(_send_alert_sync, asset_id, message)
