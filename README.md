@@ -37,4 +37,4 @@ BACKEND_URL=http://127.0.0.1:8000
 # Datadog
 DD_API_KEY=your_datadog_api_key
 DD_APP_KEY=your_datadog_app_key
-DD_SITE=ap1.datadoghq.com
+DD_SITE=    
