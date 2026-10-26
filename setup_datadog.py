@@ -202,8 +202,8 @@ def build_widgets():
         # Hàng 4: kết quả của model
         make_timeseries("🚨 Anomaly Probability", P + "anomaly_probability", "orange",
                         x=0, y=9, w=6,
-                        markers=[WidgetMarker(value="y = 0.5", display_type="warning dashed", label="ngưỡng 0.5"),
-                                 WidgetMarker(value="y = 0.7", display_type="error dashed", label="cảnh báo 0.7")]),
+                        markers=[WidgetMarker(value="y = 0.15", display_type="warning dashed", label="ngưỡng 0.15"),
+                                 WidgetMarker(value="y = 0.25", display_type="error dashed", label="cảnh báo 0.25")]),
         make_timeseries("🚩 Anomaly Flag (0/1)", P + "is_anomaly", "red", x=6, y=9, w=3,
                         display=WidgetDisplayType.BARS),
         make_query_value("Anomalies (1h)", "sum:wind_turbine.ml.anomaly_count{*}.as_count()", x=9, y=9, w=3),
@@ -214,7 +214,7 @@ def build_widgets():
         make_timeseries("🔧 Status Type ID", P + "status_type_id", "classic", x=6, y=12, w=6),
 
         # Hàng 6: event cảnh báo từ ML Service
-        make_event_stream("📣 Anomaly Events", "tags:service:wind_turbine_ml", x=0, y=15, w=12, h=4),
+        make_event_stream("📣 Anomaly Events", "service:wind_turbine_ml", x=0, y=15, w=12, h=4),
 
         # Hàng 7: Backend health
         make_timeseries("📥 Telemetry Ingestion Rate", "wind_turbine.backend.telemetry_count",
@@ -313,15 +313,15 @@ def create_monitors(api_client: ApiClient, dashboard_id: str):
     recreate_monitor(api, Monitor(
         name="[WindFarm] 📈 High anomaly probability on turbine {{asset_id.name}}",
         type=MonitorType.METRIC_ALERT,
-        query="avg(last_5m):avg:wind_turbine.anomaly_probability{*} by {asset_id} > 0.7",
+        query="avg(last_5m):avg:wind_turbine.anomaly_probability{*} by {asset_id} > 0.25",
         message=(
             "⚠️ Anomaly probability on turbine **{{asset_id.name}}** is high "
-            "(avg over 5 minutes > 70%). Turbine may be degrading.\n\n"
+            "(avg over 5 minutes > 25%). Turbine may be degrading.\n\n"
             f"Dashboard: {dash_url}"
             f"{NOTIFY}"
         ),
         options=MonitorOptions(
-            thresholds=MonitorThresholds(critical=0.7, warning=0.5),
+            thresholds=MonitorThresholds(critical=0.25, warning=0.15),
             notify_no_data=False,
             renotify_interval=60,
             include_tags=True,
