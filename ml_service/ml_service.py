@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from datetime import datetime
 import httpx
@@ -16,9 +17,12 @@ from datadog_client import send_metrics_to_datadog, send_alert_to_datadog
 
 app = FastAPI(title="ML Service (Long)")
 
+# Ngưỡng xác suất để coi là bất thường (khớp với model.predict() của RandomForest 2 lớp)
+ANOMALY_THRESHOLD = 0.5
+
 # 1. Load model
 try:
-    model = joblib.load("wind_turbine_anomaly_model.joblib")
+    model = joblib.load(Path(__file__).parent / "wind_turbine_anomaly_model.joblib")
     print("[ML SERVICE] Load model thành công.")
 except Exception as e:
     print(f"[ML SERVICE] LỖI LOAD MODEL: {e}")
@@ -42,44 +46,63 @@ class TelemetryData(BaseModel):
 
 @app.post("/predict")
 async def predict(data: TelemetryData):
-    if not model:
-        return {"error": "Model chưa được load"}, 500
+    if model is None:
+        return JSONResponse(status_code=503, content={"error": "Model chưa được load"})
 
     print(f"[ML SERVICE] Nhận dữ liệu tuabin {data.asset_id}")
 
-    # 3. Tạo mảng features
-    features = [[
-        data.wind_speed, 
-        data.power_output, 
-        data.ambient_temp, 
-        data.status_type_id,
-        data.wind_speed_roll_mean_6h,
-        data.power_roll_std_6h,
-        data.theoretical_power_index
+    # 3. Tạo mảng features (đúng thứ tự lúc train model)
+    features = {
+        "wind_speed": data.wind_speed,
+        "power_output": data.power_output,
+        "ambient_temp": data.ambient_temp,
+        "status_type_id": data.status_type_id,
+        "wind_speed_roll_mean_6h": data.wind_speed_roll_mean_6h,
+        "power_roll_std_6h": data.power_roll_std_6h,
+        "theoretical_power_index": data.theoretical_power_index,
+    }
+    row = [[
+        features["wind_speed"],
+        features["power_output"],
+        features["ambient_temp"],
+        features["status_type_id"],
+        features["wind_speed_roll_mean_6h"],
+        features["power_roll_std_6h"],
+        features["theoretical_power_index"],
     ]]
-    
-    # 4. Chạy dự đoán AI
-    is_anomaly = bool(model.predict(features)[0] == 1)
-    print(f"[ML SERVICE] Kết quả: {'BẤT THƯỜNG' if is_anomaly else 'BÌNH THƯỜNG'}")
+
+    # 4. Chạy dự đoán AI + đo thời gian suy luận
+    t0 = time.perf_counter()
+    anomaly_probability = float(model.predict_proba(row)[0][1])   # xác suất lớp 1 (bất thường)
+    inference_ms = (time.perf_counter() - t0) * 1000
+    is_anomaly = anomaly_probability > ANOMALY_THRESHOLD
+    print(f"[ML SERVICE] Kết quả: {'BẤT THƯỜNG' if is_anomaly else 'BÌNH THƯỜNG'} "
+          f"(p={anomaly_probability:.2f}, {inference_ms:.1f} ms)")
 
     # 5. Gửi metrics lên Datadog (Luôn gửi để làm dashboard)
     await send_metrics_to_datadog(
-        asset_id=data.asset_id, 
-        wind_speed=data.wind_speed, 
-        power_output=data.power_output, 
-        is_anomaly=is_anomaly
+        asset_id=data.asset_id,
+        features=features,
+        is_anomaly=is_anomaly,
+        anomaly_probability=anomaly_probability,
+        inference_ms=inference_ms,
     )
-    
+
     # 6. Xử lý khi phát hiện bất thường
     if is_anomaly:
-        alert_message = f"ML phát hiện bất thường. Gió: {data.wind_speed} m/s, Công suất: {data.power_output} kW"
-        
+        alert_message = (
+            f"ML phát hiện bất thường (xác suất {anomaly_probability:.0%}). "
+            f"Gió: {data.wind_speed} m/s, Công suất: {data.power_output} kW, "
+            f"Nhiệt độ: {data.ambient_temp}°C, "
+            f"Độ dao động công suất 6h: {data.power_roll_std_6h:.2f}"
+        )
+
         # Gửi Alert lên Datadog
         await send_alert_to_datadog(data.asset_id, alert_message)
-        
+
         # Tạo payload Event báo ngược về Backend của Hoàng
         event_payload = {
-            "event_id": int(time.time()), 
+            "event_id": int(time.time()),
             "asset_id": data.asset_id,
             "event_label": "anomaly",
             "event_start": data.time_stamp.isoformat(),
@@ -97,10 +120,10 @@ async def predict(data: TelemetryData):
                     json=event_payload,
                     headers={
                         "Authorization": f"Bearer {api_token}",
-                        "ngrok-skip-browser-warning": "true",  # Vượt qua trang cảnh báo của Ngrok
-                        "User-Agent": "ML-Service/1.0"         # Giả lập User-Agent
+                        "ngrok-skip-browser-warning": "true",
+                        "User-Agent": "ML-Service/1.0"
                     },
-                    timeout=15.0 # Tăng timeout lên 15s để đợi Ngrok phản hồi
+                    timeout=15.0
                 )
                 print(f"[ML SERVICE] Đã báo Event cho Backend. Status: {response.status_code}")
             except httpx.TimeoutException:
@@ -110,7 +133,7 @@ async def predict(data: TelemetryData):
             except Exception as e:
                 print(f"[ML SERVICE] Lỗi khác khi gọi Backend API: {type(e).__name__} - {e}")
 
-    return {"is_anomaly": is_anomaly}
+    return {"is_anomaly": is_anomaly, "anomaly_probability": round(anomaly_probability, 4)}
 
 @app.get("/")
 def root():
