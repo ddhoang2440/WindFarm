@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from config.database import init_db
 from modules.telemetry.telemetry_router import router as telemetry_router
 from modules.event.event_router import router as event_router
@@ -11,6 +12,14 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="WindFarm Backend (Hoàng)", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(telemetry_router)
 app.include_router(event_router)

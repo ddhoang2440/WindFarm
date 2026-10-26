@@ -32,7 +32,7 @@ API_TOKEN=secret-token-123
 
 # Services
 ML_SERVICE_URL=http://127.0.0.1:8001
-BACKEND_URL=http://127.0.0.1:8000
+BACKEND_URL=https://muricate-lorna-jerkily.ngrok-free.dev/
 
 # Datadog
 DD_API_KEY=your_datadog_api_key

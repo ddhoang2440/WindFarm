@@ -72,6 +72,7 @@ async def process_telemetry(data: TelemetryInput):
             response = await client.post(
                 f"{settings.ML_SERVICE_URL}/predict",
                 json=ml_payload,
+                headers={"ngrok-skip-browser-warning": "true"},
                 timeout=10.0
             )
             print(f"[BACKEND] ML trả về: {response.json()}")
