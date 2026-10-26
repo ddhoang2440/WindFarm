@@ -11,6 +11,8 @@ from pathlib import Path
 # Load .env từ thư mục gốc project (một cấp trên ml_service/)
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env")
 
+from datadog_client import send_metrics_to_datadog, send_alert_to_datadog
+
 app = FastAPI(title="ML Service (Long)")
 
 # ==========================================
@@ -46,24 +48,40 @@ async def predict(data: TelemetryData):
 
     # TODO 1: CHẠY MODEL AI THẬT
     # YÊU CẦU: Truyền đúng 7 features theo đúng thứ tự lúc train model.
-    features = [[
-        data.wind_speed, 
-        data.power_output, 
-        data.ambient_temp, 
-        data.status_type_id,
-        data.wind_speed_roll_mean_6h,
-        data.power_roll_std_6h,
-        data.theoretical_power_index
-    ]]
-    
+    import pandas as pd
+    features = pd.DataFrame([{
+        "wind_speed": data.wind_speed,
+        "power_output": data.power_output,
+        "ambient_temp": data.ambient_temp,
+        "status_type_id": data.status_type_id,
+        "wind_speed_roll_mean_6h": data.wind_speed_roll_mean_6h,
+        "power_roll_std_6h": data.power_roll_std_6h,
+        "theoretical_power_index": data.theoretical_power_index,
+    }])
+
     # Chạy dự đoán (1 là bất thường, 0 là bình thường)
     is_anomaly = bool(model.predict(features)[0] == 1)
     
-    # Tạm thời in ra log để debug
     print(f"[ML SERVICE] Kết quả dự đoán: {'BẤT THƯỜNG' if is_anomaly else 'BÌNH THƯỜNG'}")
 
-    # TODO 2: NẾU BẤT THƯỜNG -> GỌI NGƯỢC LẠI API /EVENTS CỦA HOÀNG
+    # Gửi metrics lên Datadog cho mọi request
+    await send_metrics_to_datadog(
+        asset_id=data.asset_id,
+        wind_speed=data.wind_speed,
+        power_output=data.power_output,
+        is_anomaly=is_anomaly
+    )
+
+    # Nếu bất thường -> gửi alert lên Datadog + gọi API backend
     if is_anomaly:
+        await send_alert_to_datadog(
+            asset_id=data.asset_id,
+            message=(
+                f"Anomaly detected on turbine {data.asset_id}. "
+                f"Wind: {data.wind_speed} m/s, Power: {data.power_output} kW, "
+                f"Temp: {data.ambient_temp}°C"
+            )
+        )
         print("[ML SERVICE] -> Phát hiện bất thường, gọi API /events của Hoàng...")
         
         # ĐÃ SỬA: Tự sinh event_id theo timestamp thay vì fix cứng 999

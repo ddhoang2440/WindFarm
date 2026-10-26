@@ -1,5 +1,7 @@
 import os
 from datetime import datetime
+from pathlib import Path
+from dotenv import load_dotenv
 from datadog_api_client import ApiClient, Configuration
 from datadog_api_client.v1.api.metrics_api import MetricsApi
 from datadog_api_client.v1.api.events_api import EventsApi
@@ -9,11 +11,13 @@ from datadog_api_client.v1.model.series import Series
 from datadog_api_client.v1.model.event_create_request import EventCreateRequest
 from starlette.concurrency import run_in_threadpool
 
+# Load .env trước khi đọc biến môi trường — tránh fallback về datadoghq.com (US)
+load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env")
+
 # 1. Khởi tạo Configuration cho Datadog
 configuration = Configuration()
 configuration.api_key["apiKeyAuth"] = os.getenv("DD_API_KEY", "")
 configuration.api_key["appKeyAuth"] = os.getenv("DD_APP_KEY", "")
-# SỬA LỖI TẠI ĐÂY: Mặc định là "datadoghq.com" nếu không tìm thấy biến môi trường
 configuration.server_variables["site"] = os.getenv("DD_SITE", "datadoghq.com")
 
 def _send_metrics_sync(asset_id: int, wind_speed: float, power_output: float, is_anomaly: bool):
