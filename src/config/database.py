@@ -7,7 +7,6 @@ from models.event import EventRecord
 
 async def init_db():
     print("[BACKEND] Connecting to MongoDB...")
-    # THÊM tlsCAFile=certifi.where() ĐỂ SỬA LỖI SSL VỚI MONGODB ATLAS
     client = AsyncIOMotorClient(
         settings.MONGODB_URI,
         tls=True,
