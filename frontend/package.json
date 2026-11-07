@@ -1,0 +1,41 @@
+{
+    "name": "frontent-react-hoidanit",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "author": {
+        "name": "hoidanit - Hỏi Dân IT",
+        "url": "https://hoidanit.vn"
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "lint": "eslint .",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "lucide-react": "^1.69.0",
+        "react": "19.3.1",
+        "react-dom": "19.3.1",
+        "react-toastify": "11.2.0",
+        "uuid": "14.0.1"
+    },
+    "devDependencies": {
+        "@babel/core": "8.0.9",
+        "@eslint/js": "10.0.1",
+        "@rolldown/plugin-babel": "0.2.4",
+        "@types/babel__core": "7.20.5",
+        "@types/node": "26.6.5",
+        "@types/react": "19.3.0",
+        "@types/react-dom": "19.3.0",
+        "@vitejs/plugin-react": "6.1.2",
+        "babel-plugin-react-compiler": "1.0.0",
+        "eslint": "10.13.0",
+        "eslint-plugin-react-hooks": "7.1.1",
+        "eslint-plugin-react-refresh": "0.5.7",
+        "globals": "17.13.0",
+        "typescript": "~6.0.0",
+        "typescript-eslint": "8.72.1",
+        "vite": "8.3.5"
+    }
+}

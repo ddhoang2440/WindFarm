@@ -1,0 +1,64 @@
+# ========== Python ==========
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+.python-version
+
+# ========== Environment ==========
+.env
+*.env
+!.env.example 
+
+# ========== uv ==========
+.uv/
+
+# ========== Model weights ==========
+*.pkl
+*.h5
+*.pt
+*.pth
+*.onnx
+*.joblib
+!wind_turbine_anomaly_model.joblib    # Cho phép file model của Long
+
+# ========== Node ==========
+node_modules/
+.cache/
+*.local
+
+# ========== IDE ==========
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+*.swo
+
+# ========== OS ==========
+.DS_Store
+Thumbs.db
+
+# ========== Logs ==========
+*.log
+logs/
+
+# ========== MongoDB ==========
+*.bson
+
+# ========== Test coverage ==========
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ========== Jupyter ==========
+.ipynb_checkpoints/
