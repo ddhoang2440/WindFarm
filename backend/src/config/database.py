@@ -16,4 +16,4 @@ async def init_db():
         database=client[settings.DATABASE_NAME],
         document_models=[TelemetryRecord, EventRecord]
     )
-    print("[BACKEND] Kết nối MongoDB thành công!")
+    print("[BACKEND] Connected to MongoDB successfully!")

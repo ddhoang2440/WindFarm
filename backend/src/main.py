@@ -11,7 +11,7 @@ async def lifespan(app: FastAPI):
     await init_db()
     yield
 
-app = FastAPI(title="WindFarm Backend (Hoàng)", lifespan=lifespan)
+app = FastAPI(title="WindFarm Backend", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,3 +28,9 @@ app.include_router(stats_router)
 @app.get("/")
 def root():
     return {"message": "Backend is running"}
+
+
+# Ignore automated Chrome DevTools discovery requests to keep terminal logs clean
+@app.get("/.well-known/appspecific/com.chrome.devtools.json", include_in_schema=False)
+def chrome_devtools_discovery():
+    return {}

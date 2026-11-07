@@ -1,4 +1,4 @@
-// Khớp chính xác với EventInput & EventRecord trong backend/src/models/event.py
+// Matches EventInput & EventRecord in backend/src/models/event.py
 export interface EventInput {
   event_id: number;
   asset_id: number;
@@ -13,7 +13,7 @@ export interface EventRecordUI extends EventInput {
   created_at?: string;
 }
 
-// Khớp với TelemetryInput trong backend/src/models/telemetry.py
+// Matches TelemetryInput in backend/src/models/telemetry.py
 export interface TelemetryInput {
   asset_id: number;
   time_stamp: string; // ISO 8601

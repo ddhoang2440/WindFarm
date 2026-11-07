@@ -132,7 +132,7 @@ export const KpiSummary: React.FC<KpiSummaryProps> = ({
                     isDescExpanded ? "expanded" : ""
                   }`}
                   onClick={() => setIsDescExpanded((prev) => !prev)}
-                  title="Nhấn để xem đầy đủ / thu gọn mô tả"
+                  title="Click to view full description / collapse"
                 >
                   {latestEvent.event_description || "No description"}
                 </span>
@@ -142,17 +142,17 @@ export const KpiSummary: React.FC<KpiSummaryProps> = ({
                       type="button"
                       className="btn-desc-toggle"
                       onClick={() => setIsDescExpanded((prev) => !prev)}
-                      title={isDescExpanded ? "Thu gọn mô tả" : "Xem chi tiết đầy đủ"}
+                      title={isDescExpanded ? "Collapse description" : "View full details"}
                     >
                       {isDescExpanded ? (
                         <>
                           <ChevronUp size={11} />
-                          <span>Thu gọn</span>
+                          <span>Collapse</span>
                         </>
                       ) : (
                         <>
                           <ChevronDown size={11} />
-                          <span>Chi tiết</span>
+                          <span>Details</span>
                         </>
                       )}
                     </button>

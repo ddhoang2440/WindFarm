@@ -60,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
             {isBackendOffline && (
               <span
                 className="api-offline-indicator"
-                title="Backend chưa kết nối hoặc đang offline"
+                title="Backend is not connected or offline"
               >
                 ● Offline
               </span>

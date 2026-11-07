@@ -1,28 +1,29 @@
-# 🌬️ WindFarm Monitoring System (HKT Team)
+# 🌬️ WindFarm Backend & ML Service (HKT Team)
 
-Dự án giám sát hệ thống tuabin gió (WindFarm) theo kiến trúc Microservices, tích hợp Trí tuệ nhân tạo (AI) để phát hiện bất thường và giám sát trực quan qua Datadog.
+A distributed microservices architecture for wind turbine condition monitoring, featuring real-time AI anomaly detection and cloud observability via Datadog.
 
-## 🏗️ Kiến trúc hệ thống & Phân công
-Hệ thống bao gồm các thành phần do 3 thành viên phụ trách:
-1. **Backend & Frontend (Đào Duy Hoàng):** Backend chạy ở cổng `8000` (FastAPI, MongoDB, tính toán features phái sinh, API thống kê) và Frontend SCADA Console (React 19).
-2. **ML Service & Datadog (Đào Duy Long):** Chạy ở cổng `8001` (FastAPI), nhận dữ liệu từ Backend, chạy mô hình AI để dự đoán bất thường và gửi cảnh báo lên Datadog.
-3. **Train Model AI (Đào Ngọc Hoa):** Xử lý tập dữ liệu cảm biến tuabin gió và huấn luyện mô hình Machine Learning (RandomForest) tối ưu xuất file `.joblib`.
+## 🏗️ System Architecture & Responsibilities
+The system consists of components developed by the 3 team members:
+1. **Backend & Frontend (Hoàng):** Backend Gateway running on port `8000` (FastAPI, MongoDB Atlas, dynamic 6h rolling feature engineering, statistics API) and Frontend SCADA Console (React 19).
+2. **ML Service & Datadog (Long):** Running on port `8001` (FastAPI), consumes engineered telemetry from Backend, executes AI model inference for anomaly detection, and forwards metrics and alerts to Datadog.
+3. **Train Model AI (Hoa):** Researched and processed wind turbine sensor telemetry, trained the high-accuracy `RandomForestClassifier` model, and packaged the artifact into `wind_turbine_anomaly_model.joblib`.
 
-## 🛠️ Công nghệ sử dụng
-*   **Backend:** Python, FastAPI, Beanie (MongoDB ODM), Motor.
-*   **ML Service:** Scikit-learn, Pandas, Joblib.
-*   **Monitoring:** Datadog (Metrics & Events).
+## 🛠️ Tech Stack
+*   **Backend:** Python 3.11+, FastAPI, Beanie (MongoDB ODM), Motor.
+*   **ML Service:** Scikit-learn 1.6.1, Pandas, NumPy, Joblib.
+*   **Monitoring & APM:** Datadog (Metrics, APM Tracing & Alert Events).
 *   **Database:** MongoDB Atlas.
-*   **Public API:** Ngrok.
+*   **Public Tunneling:** Ngrok.
 
 ---
 
-## 🚀 Hướng dẫn cài đặt và chạy dự án
+## 🚀 Setup & Execution Guide
 
-### Bước 1: Chuẩn bị môi trường
-Yêu cầu máy tính đã cài đặt **Python 3.11+** và **MongoDB** (hoặc có tài khoản MongoDB Atlas).
+### Prerequisites
+* **Python 3.11+**
+* **MongoDB Atlas** account or local MongoDB instance (port `27017`).
 
-Tạo file `.env` ở thư mục gốc với nội dung sau:
+Create a `.env` file in the `backend/` directory:
 ```env
 # Database
 MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/
@@ -38,4 +39,30 @@ BACKEND_URL=http://127.0.0.1:8000
 # Datadog
 DD_API_KEY=your_datadog_api_key
 DD_APP_KEY=your_datadog_app_key
-DD_SITE=    
+DD_SITE=datadoghq.com
+```
+
+### Installation
+```bash
+cd backend
+python -m venv venv
+# On Windows:
+.\venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+### Running the Services
+1. **Start Backend Gateway (Port 8000):**
+   ```bash
+   python -m uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
+   ```
+   * Swagger Docs: http://127.0.0.1:8000/docs
+
+2. **Start ML Service (Port 8001):**
+   ```bash
+   python -m uvicorn ml_service.main:app --host 127.0.0.1 --port 8001 --reload
+   ```
+   * Swagger Docs: http://127.0.0.1:8001/docs

@@ -46,7 +46,7 @@ export const CsvStreamerBanner: React.FC<CsvStreamerBannerProps> = ({
                   <FileSpreadsheet size={15} />
                 </span>
                 <span>
-                  File đã chọn: <strong>{selectedCsvStatus.fileName}</strong> ({selectedCsvStatus.rowCount} dòng dữ liệu)
+                  Selected file: <strong>{selectedCsvStatus.fileName}</strong> ({selectedCsvStatus.rowCount} data rows)
                 </span>
                 <span
                   className={`file-run-badge ${
@@ -56,12 +56,12 @@ export const CsvStreamerBanner: React.FC<CsvStreamerBannerProps> = ({
                   {selectedCsvStatus.isRunning ? (
                     <>
                       <Zap size={11} />
-                      <span>Đang stream: {selectedCsvStatus.currentIndex}/{selectedCsvStatus.rowCount}</span>
+                      <span>Streaming: {selectedCsvStatus.currentIndex}/{selectedCsvStatus.rowCount}</span>
                     </>
                   ) : (
                     <>
                       <Pause size={11} />
-                      <span>Sẵn sàng stream</span>
+                      <span>Ready to stream</span>
                     </>
                   )}
                 </span>
@@ -71,7 +71,7 @@ export const CsvStreamerBanner: React.FC<CsvStreamerBannerProps> = ({
                 <span className="file-icon">
                   <FolderArchive size={15} />
                 </span>
-                <span>Trạng thái: Chưa nạp file CSV (Nhấn để chọn và chạy)</span>
+                <span>Status: No CSV file loaded (Click to select and run)</span>
               </span>
             )}
           </div>
@@ -85,7 +85,7 @@ export const CsvStreamerBanner: React.FC<CsvStreamerBannerProps> = ({
         {selectedCsvStatus ? (
           <>
             <Settings2 size={15} />
-            <span>Quản lý & Tiếp tục Stream</span>
+            <span>Manage & Continue Stream</span>
           </>
         ) : (
           <>

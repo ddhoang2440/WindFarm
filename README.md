@@ -1,71 +1,71 @@
-# 🌬️ WindFarm HKT — Hệ Thống Giám Sát & Phát Hiện Bất Thường Tuabin Gió
+# 🌬️ WindFarm HKT — Wind Turbine Monitoring & Real-Time AI Anomaly Detection Console
 
 > **SCADA-Grade Wind Turbine Monitoring & Real-time AI Anomaly Detection Console**  
-> Dự án giám sát vận hành các cụm tuabin gió theo kiến trúc Microservices phân tán, tích hợp mô hình Học máy (Machine Learning) phát hiện bất thường theo thời gian thực và quản trị chỉ số qua Datadog APM & MongoDB Atlas.
+> A distributed microservices-based wind turbine monitoring system featuring real-time AI anomaly detection, dynamic feature engineering, and observability via Datadog APM and MongoDB Atlas.
 
 ---
 
-## 📌 Mục Lục
-1. [Giới Thiệu Dự Án](#-giới-thiệu-dự-án)
+## 📌 Table of Contents
+1. [Project Overview](#-project-overview)
 2. [Tech Stack](#-tech-stack)
-3. [Kiến Trúc Tổng Quan](#-kiến-trúc-tổng-quan)
-4. [Hướng Dẫn Cài Đặt & Chạy Dự Án](#-hướng-dẫn-cài-đặt--chạy-dự-án)
-   - [Yêu Cầu Môi Trường](#1-yêu-cầu-môi-trường)
-   - [Cấu Hình Biến Môi Trường (.env)](#2-cấu-hình-biến-môi-trường-env)
-   - [Khởi Chạy Backend API (Port 8000)](#3-khởi-chạy-backend-api-port-8000)
-   - [Khởi Chạy ML Prediction Service (Port 8001)](#4-khởi-chạy-ml-prediction-service-port-8001)
-   - [Khởi Chạy Frontend SCADA Console (Port 5173)](#5-khởi-chạy-frontend-scada-console-port-5173)
-   - [Mô Phỏng Dữ Liệu Cảm Biến (CSV Streaming)](#6-mô-phỏng-dữ-liệu-cảm-biến-csv-streaming)
-5. [Cấu Trúc Thư Mục Dự Án](#-cấu-trúc-thư-mục-dự-án)
-6. [Tài Liệu Chi Tiết (Docs)](#-tài-liệu-chi-tiết-docs)
-7. [Tác Giả & Đóng Góp](#-tác-giả--đóng-góp)
+3. [System Architecture](#-system-architecture)
+4. [Installation & Setup Guide](#-installation--setup-guide)
+   - [Prerequisites](#1-prerequisites)
+   - [Environment Configuration (.env)](#2-environment-configuration-env)
+   - [Running the Backend API (Port 8000)](#3-running-the-backend-api-port-8000)
+   - [Running the ML Prediction Service (Port 8001)](#4-running-the-ml-prediction-service-port-8001)
+   - [Running the Frontend SCADA Console (Port 5173)](#5-running-the-frontend-scada-console-port-5173)
+   - [Simulating Telemetry Data (CSV Streaming)](#6-simulating-telemetry-data-csv-streaming)
+5. [Project Directory Structure](#-project-directory-structure)
+6. [Detailed Documentation (Docs)](#-detailed-documentation-docs)
+7. [Team Members & Role Assignments](#-team-members--role-assignments)
 
 ---
 
-## 📖 Giới Thiệu Dự Án
+## 📖 Project Overview
 
-Hệ thống **WindFarm HKT** được xây dựng nhằm giải quyết bài toán giám sát liên tục tình trạng vận hành của các cụm tuabin điện gió trong điều kiện thực tế khắc nghiệt:
-* **Thu thập dữ liệu cảm biến (Telemetry):** Tốc độ gió, công suất phát điện, nhiệt độ môi trường, trạng thái tuabin từ cảm biến IoT/SCADA.
-* **Tính toán đặc trưng động (Feature Engineering):** Tính trung bình trượt tốc độ gió 6 giờ (`wind_speed_roll_mean_6h`), độ lệch chuẩn công suất 6 giờ (`power_roll_std_6h`), và chỉ số công suất lý thuyết (`theoretical_power_index`).
-* **Phát hiện bất thường tức thì bằng AI:** Gửi đặc trưng sang **ML Service** chạy mô hình **RandomForest Classifier** để phân loại (`Normal` hoặc `Anomaly`) và trả về xác suất rủi ro.
-* **Lưu trữ & Tự động ghi nhận sự kiện (Event Logging):** Lưu trữ telemetry và tự động tạo sự kiện cảnh báo vào **MongoDB Atlas** khi phát hiện bất thường.
-* **Giao diện SCADA Console chuyên nghiệp:** Giao diện tối ưu theo chuẩn Midnight Blue + Cyan SCADA, tương thích hoàn toàn trên Desktop, Tablet và Mobile, hỗ trợ nạp CSV trực tiếp trên trình duyệt để stream dữ liệu kiểm thử.
-* **Giám sát hệ thống (APM & Observability):** Đồng bộ hóa chỉ số và sự kiện quan trọng lên nền tảng **Datadog**.
+The **WindFarm HKT** system is engineered to solve the critical challenge of continuous condition monitoring and predictive maintenance for wind turbine clusters operating under harsh environmental conditions:
+* **IoT Sensor Telemetry Ingestion:** Ingests live operational metrics including wind speed, active power output, ambient temperature, and turbine status flags.
+* **Dynamic Feature Engineering:** Continuously computes dynamic time-window features: 6-hour rolling mean wind speed (`wind_speed_roll_mean_6h`), 6-hour power standard deviation (`power_roll_std_6h`), and theoretical power index (`theoretical_power_index`).
+* **Real-Time AI Anomaly Detection:** Forwards engineered features to an independent **ML Service** powered by a trained **RandomForest Classifier** to predict operational anomalies (`Normal` vs `Anomaly`) along with risk probability scores.
+* **Automated Event Logging:** Automatically logs detected anomalies and operational incidents into **MongoDB Atlas** for historical tracking and auditing.
+* **Industrial SCADA Console:** A high-contrast, zero-glare Midnight Blue & Cyan SCADA web interface compatible across Desktop, Tablet, and Mobile devices, featuring an in-browser CSV dataset runner.
+* **Cloud Observability & APM:** Synchronizes metrics, latency traces, and critical alert events to the **Datadog** platform.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### 1. Frontend (Giao diện điều khiển SCADA)
+### 1. Frontend (SCADA Operator Console)
 * **Framework:** [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-* **Build Tool:** [Vite 8](https://vite.dev/) (Tối ưu biên dịch siêu tốc, HMR)
-* **Design Theme:** Midnight Blue & Industrial Cyan SCADA Design (High contrast, không lóa mắt, tối ưu quan sát dữ liệu công nghiệp)
-* **Iconography:** [Lucide React](https://lucide.dev/) (Icon vector SVG kỹ thuật số, đồng bộ)
+* **Build Tool:** [Vite 8](https://vite.dev/) (Instant HMR, highly optimized production bundles)
+* **Design System:** Midnight Blue & Industrial Cyan SCADA theme (high contrast, zero neon glare, optimized for mission-critical telemetry monitoring)
+* **Iconography:** [Lucide React](https://lucide.dev/) (consistent, crisp digital vector icons)
 * **Notifications:** [React-Toastify](https://fkhadra.github.io/react-toastify/)
-* **Data Streaming:** Trình phân tích & streamer CSV trực tiếp trên Client bằng Web Streams API
+* **Streaming Engine:** Client-side CSV parser and sequential HTTP stream engine utilizing Web Streams API
 
 ### 2. Backend API Gateway & Processing (Port 8000)
 * **Framework:** [Python 3.11+](https://www.python.org/) + [FastAPI](https://fastapi.tiangolo.com/)
 * **ASGI Server:** [Uvicorn](https://www.uvicorn.org/)
 * **Database ODM:** [Beanie ODM](https://beanie-odm.dev/) + [Motor](https://motor.readthedocs.io/) (Asynchronous MongoDB Driver)
 * **Data Validation:** [Pydantic v2](https://docs.pydantic.dev/) & Pydantic-Settings
-* **Security:** Bearer Token Authentication Middleware
-* **HTTP Client:** [HTTPX](https://www.python-httpx.org/) (Async requests sang ML Service)
+* **Security:** Centralized Bearer Token Authentication Middleware
+* **HTTP Client:** [HTTPX](https://www.python-httpx.org/) (Async requests to ML Service)
 
 ### 3. Machine Learning Service (Port 8001)
 * **Framework:** FastAPI
-* **Model:** [Scikit-learn 1.6.1](https://scikit-learn.org/) (Mô hình huấn luyện `RandomForestClassifier` lưu dạng `.joblib`)
+* **Model:** [Scikit-learn 1.6.1](https://scikit-learn.org/) (`RandomForestClassifier` packaged in `.joblib` format)
 * **Data Processing:** [Pandas](https://pandas.pydata.org/), [NumPy](https://numpy.org/)
 * **Monitoring:** Datadog API Client (`datadog-api-client`, `ddtrace`)
 
 ### 4. Database & Cloud Infrastructure
 * **Database:** [MongoDB Atlas](https://www.mongodb.com/atlas) (Collections: `telemetry_records`, `event_records`)
-* **APM & Monitoring:** [Datadog](https://www.datadoghq.com/) (Dashboards, Metrics, Alert Events)
-* **Public Tunneling:** Ngrok (Hỗ trợ remote webhook / demo)
+* **APM & Monitoring:** [Datadog](https://www.datadoghq.com/) (APM Tracing, Metrics, Alert Events)
+* **Public Tunneling:** Ngrok (Remote webhook and multi-service demonstration)
 
 ---
 
-## 🏗️ Kiến Trúc Tổng Quan
+## 🏗️ System Architecture
 
 ```
 +--------------------------------------------------------------------------+
@@ -105,31 +105,31 @@ Hệ thống **WindFarm HKT** được xây dựng nhằm giải quyết bài to
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Chạy Dự Án
+## 🚀 Installation & Setup Guide
 
-### 1. Yêu Cầu Môi Trường
-* **Node.js:** phiên bản `18.x` hoặc `20.x+` (kèm npm hoặc yarn)
-* **Python:** phiên bản `3.11+`
-* **MongoDB:** Tài khoản MongoDB Atlas hoặc MongoDB chạy local (cổng `27017`)
+### 1. Prerequisites
+* **Node.js:** version `18.x` or `20.x+` (with npm or yarn)
+* **Python:** version `3.11+`
+* **MongoDB:** MongoDB Atlas account or local MongoDB instance (port `27017`)
 
 ---
 
-### 2. Cấu Hình Biến Môi Trường (.env)
-Tạo file `.env` tại thư mục `backend/.env` với nội dung mẫu:
+### 2. Environment Configuration (.env)
+Create a `.env` file at `backend/.env` with the following configuration:
 
 ```env
 # MongoDB Atlas Connection
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>.mongodb.net/?retryWrites=true&w=majority
 DATABASE_NAME=windfarm
 
-# API Security Token (Dùng xác thực Bearer Token)
+# API Security Token (Bearer Token Authentication)
 API_TOKEN=secret-token-123
 
 # Service Endpoints
 ML_SERVICE_URL=http://127.0.0.1:8001
 BACKEND_URL=http://127.0.0.1:8000
 
-# Datadog Integration (Tùy chọn)
+# Datadog Integration (Optional)
 DD_API_KEY=your_datadog_api_key
 DD_APP_KEY=your_datadog_app_key
 DD_SITE=datadoghq.com
@@ -137,84 +137,84 @@ DD_SITE=datadoghq.com
 
 ---
 
-### 3. Khởi Chạy Backend API (Port 8000)
+### 3. Running the Backend API (Port 8000)
 
-1. Mở terminal và chuyển vào thư mục `backend`:
+1. Open a terminal and navigate to the `backend` directory:
    ```bash
    cd backend
    ```
-2. Khởi tạo môi trường ảo Python (khuyến nghị):
+2. Create and activate a Python virtual environment:
    ```bash
    python -m venv venv
-   # Trên Windows:
+   # On Windows:
    .\venv\Scripts\activate
-   # Trên macOS/Linux:
+   # On macOS/Linux:
    source venv/bin/activate
    ```
-3. Cài đặt các thư viện phụ thuộc:
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-4. Khởi chạy server FastAPI Backend:
+4. Start the FastAPI Backend server:
    ```bash
    python -m uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
    ```
-   * Backend Swagger API Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-   * Kiểm tra tình trạng: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+   * Interactive Swagger Documentation: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+   * Health Check: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
 ---
 
-### 4. Khởi Chạy ML Prediction Service (Port 8001)
+### 4. Running the ML Prediction Service (Port 8001)
 
-1. Mở một cửa sổ terminal mới và kích hoạt môi trường ảo:
+1. Open a second terminal window and activate the virtual environment:
    ```bash
    cd backend
    .\venv\Scripts\activate
    ```
-2. Đảm bảo file mô hình `wind_turbine_anomaly_model.joblib` đã nằm trong thư mục `backend/ml_service/`.
-3. Chạy ML Service:
+2. Verify that `wind_turbine_anomaly_model.joblib` exists in `backend/ml_service/`.
+3. Start the ML Service:
    ```bash
    python -m uvicorn ml_service.main:app --host 127.0.0.1 --port 8001 --reload
    ```
-   * ML Service Swagger API Docs: [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)
+   * ML Service Swagger Documentation: [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)
 
 ---
 
-### 5. Khởi Chạy Frontend SCADA Console (Port 5173)
+### 5. Running the Frontend SCADA Console (Port 5173)
 
-1. Mở một cửa sổ terminal mới và chuyển vào thư mục `frontend`:
+1. Open a third terminal window and navigate to `frontend`:
    ```bash
    cd frontend
    ```
-2. Cài đặt các gói phụ thuộc npm:
+2. Install npm packages:
    ```bash
    npm install
    ```
-3. Khởi chạy giao diện ở chế độ Development:
+3. Start the Vite development server:
    ```bash
    npm run dev
    ```
-4. Mở trình duyệt truy cập: [http://localhost:5173](http://localhost:5173)
+4. Open your browser and navigate to: [http://localhost:5173](http://localhost:5173)
 
-> **Cấu hình kết nối trên giao diện:**
-> * Nhấn vào nút **"API Settings"** ở góc trên thanh Header.
-> * Điền Backend URL: `http://127.0.0.1:8000`
-> * Điền Bearer Token: `secret-token-123` (khớp với giá trị `API_TOKEN` trong file `.env`)
-> * Nhấn **Save Configuration**. Trạng thái hệ thống sẽ chuyển sang màu xanh lá (`ONLINE`).
+> **In-App API Configuration:**
+> * Click the **"API Settings"** button on the top header.
+> * Set Backend URL: `http://127.0.0.1:8000`
+> * Set Bearer Token: `secret-token-123` (must match `API_TOKEN` in `.env`)
+> * Click **Save Configuration**. The header status will turn green (`ONLINE`).
 
 ---
 
-### 6. Mô Phỏng Dữ Liệu Cảm Biến (CSV Streaming)
+### 6. Simulating Telemetry Data (CSV Streaming)
 
-Hệ thống hỗ trợ 2 cách stream dữ liệu kiểm thử:
+Two methods are available for streaming test telemetry data:
 
-* **Cách 1: Trực tiếp qua giao diện Web (Khuyến nghị)**
-  1. Trên dashboard, nhấn nút **"Khám phá & Nạp CSV"** trên thanh Quick Banner.
-  2. Kéo thả file `backend/turbine_telemetry.csv` vào khu vực Dropzone.
-  3. Chọn tốc độ stream (`3s/row`, `1s/row`, hoặc `0.5s/row`).
-  4. Nhấn **Start CSV Stream** để xem dữ liệu được gửi theo thời gian thực kèm log trực tiếp từ terminal.
+* **Method 1: In-Browser CSV Streamer (Recommended)**
+  1. Click **"Upload & Start CSV Stream"** on the dashboard quick banner.
+  2. Drag and drop `backend/turbine_telemetry.csv` into the dropzone.
+  3. Select stream speed (`3s/row`, `1s/row`, or `0.5s/row`).
+  4. Click **Start CSV Stream** to watch live telemetry transmission and real-time AI anomaly detection.
 
-* **Cách 2: Chạy Script Python độc lập**
+* **Method 2: Standalone Python Script**
   ```bash
   cd backend
   python stimulator_csv.py
@@ -222,83 +222,82 @@ Hệ thống hỗ trợ 2 cách stream dữ liệu kiểm thử:
 
 ---
 
-## 📂 Cấu Trúc Thư Mục Dự Án
+## 📂 Project Directory Structure
 
 ```
 WindFarm/
-├── README.md                          # Tài liệu hướng dẫn chính của dự án
-├── docs/                              # Thư mục tài liệu chi tiết của dự án
-│   ├── README.md                      # Mục lục & hướng dẫn tra cứu tài liệu
-│   ├── architecture.md                # Đặc tả kiến trúc hệ thống & thiết kế kỹ thuật
-│   ├── functional_specifications.md   # Đặc tả chi tiết các tính năng chức năng
-│   └── plan_and_roadmap.md            # Kế hoạch triển khai, tiến độ & roadmap tương lai
+├── README.md                          # Primary project documentation
+├── docs/                              # In-depth technical documentation
+│   ├── README.md                      # Documentation index & guide
+│   ├── architecture.md                # System architecture & technical specs
+│   ├── functional_specifications.md   # Functional requirements & UX specifications
+│   └── plan_and_roadmap.md            # Development roadmap & engineering changelog
 │
-├── backend/                           # Dịch vụ Backend & Học máy
-│   ├── .env                           # Biến môi trường kết nối Database, API Token
-│   ├── requirements.txt               # Danh sách thư viện Python cần thiết
-│   ├── stimulator_csv.py              # Script mô phỏng nạp telemetry từ CSV
-│   ├── turbine_telemetry.csv          # Dữ liệu telemetry mẫu 5 tuabin
+├── backend/                           # Backend API & Machine Learning services
+│   ├── .env                           # Environment configuration
+│   ├── requirements.txt               # Python package dependencies
+│   ├── stimulator_csv.py              # CSV simulation streaming script
+│   ├── turbine_telemetry.csv          # Sample 5-turbine sensor dataset
 │   │
-│   ├── src/                           # Backend API chính (Port 8000)
-│   │   ├── main.py                    # Điểm khởi chạy FastAPI & CORS
-│   │   ├── config/                    # Cấu hình Database MongoDB & Settings
-│   │   ├── core/                      # Middleware bảo mật, xác thực Bearer Token
-│   │   ├── models/                    # Khai báo cấu trúc Beanie ODM (Telemetry, Event)
-│   │   └── modules/                   # Các module xử lý logic nghiệp vụ
-│   │       ├── telemetry/             # Xử lý Telemetry Ingestion & Thống kê
-│   │       └── event/                 # Quản lý sự kiện Event & Truy vấn MongoDB
+│   ├── src/                           # Backend Gateway service (Port 8000)
+│   │   ├── main.py                    # FastAPI entry point & CORS configuration
+│   │   ├── config/                    # MongoDB Atlas & app settings
+│   │   ├── core/                      # Bearer token security middleware
+│   │   ├── models/                    # Beanie ODM schemas (Telemetry, Event)
+│   │   └── modules/                   # Feature modules
+│   │       ├── telemetry/             # Ingestion & statistics endpoints
+│   │       └── event/                 # Event management & queries
 │   │
-│   └── ml_service/                    # Dịch vụ Trí Tuệ Nhân Tạo (Port 8001)
-│       ├── main.py                    # FastAPI endpoint /predict
-│       ├── ml_service.py              # Logic load model & dự đoán bất thường
-│       ├── datadog_client.py          # Kết nối gửi cảnh báo sang Datadog
-│       └── wind_turbine_anomaly_model.joblib # Mô hình RandomForest đã huấn luyện
+│   └── ml_service/                    # AI Anomaly Prediction service (Port 8001)
+│       ├── main.py                    # FastAPI /predict endpoint
+│       ├── ml_service.py              # Model inference logic
+│       ├── datadog_client.py          # Datadog metrics and alert forwarding
+│       └── wind_turbine_anomaly_model.joblib # Trained RandomForest model
 │
-└── frontend/                          # Giao diện SCADA Dashboard (Port 5173)
-    ├── package.json                   # Cấu hình dự án React 19 + TypeScript
-    ├── vite.config.ts                 # Cấu hình Vite bundler
+└── frontend/                          # SCADA Dashboard application (Port 5173)
+    ├── package.json                   # React 19 + TypeScript package dependencies
+    ├── vite.config.ts                 # Vite build configuration
     └── src/
-        ├── App.tsx                    # Component tổng điều phối trạng thái Console
-        ├── App.css                    # Toàn bộ Style SCADA, Animations & Responsive
-        ├── index.css                  # CSS Variables & Thiết lập Reset gốc
+        ├── App.tsx                    # Main SCADA console state orchestrator
+        ├── App.css                    # Industrial SCADA stylesheets & responsive layout
+        ├── index.css                  # CSS reset & global styling
         │
-        ├── components/                # Cấu trúc Component được phân chia bài bản
-        │   ├── index.ts               # Master Barrel export
-        │   ├── layout/                # Header, Footer, Thanh trạng thái kết nối
+        ├── components/                # Modular component structure
+        │   ├── index.ts               # Master barrel export
+        │   ├── layout/                # Header, Footer, connectivity status
         │   ├── dashboard/             # KpiSummary, EventTable, EventFilters
         │   ├── csv-runner/            # CsvStreamerBanner, CsvRunnerModal
         │   └── modals/                # SettingsModal, LogEventModal, ErrorBanner
         │
-        ├── services/                  # Tầng giao tiếp API tách biệt theo module
+        ├── services/                  # Decoupled API service layer
         │   ├── index.ts               # Barrel export
-        │   ├── config.service.ts      # Quản lý localStorage cấu hình API & Token
-        │   ├── telemetry.service.ts   # Gửi dữ liệu cảm biến POST /api/v1/telemetry
-        │   ├── event.service.ts       # Lấy danh sách sự kiện & tạo sự kiện thủ công
-        │   └── health.service.ts      # Ping kiểm tra sức khỏe server FastAPI
+        │   ├── config.service.ts      # LocalStorage API config management
+        │   ├── telemetry.service.ts   # POST /api/v1/telemetry client
+        │   ├── event.service.ts       # Event queries & manual log API
+        │   └── health.service.ts      # Backend health ping service
         │
-        ├── types/                     # Định nghĩa TypeScript interface (WindFarm)
-        └── utils/                     # Xử lý parse CSV client-side & format ngày giờ
+        ├── types/                     # TypeScript data interfaces (WindFarm)
+        └── utils/                     # Client-side CSV parser & date formatters
 ```
 
 ---
 
-## 📚 Tài Liệu Chi Tiết (Docs)
+## 📚 Detailed Documentation (Docs)
 
-Để tìm hiểu sâu hơn về quy trình thiết kế, kiến trúc luồng dữ liệu và lộ trình phát triển, vui lòng tham khảo các tài liệu trong thư mục [`docs/`](file:///c:/WindFarm/docs):
+For architectural blueprints, data flow diagrams, and full functional specifications, consult the documents in the [`docs/`](file:///c:/WindFarm/docs) directory:
 
-* 📐 [**docs/architecture.md**](file:///c:/WindFarm/docs/architecture.md): Sơ đồ kiến trúc chi tiết (Mermaid Diagrams), luồng xử lý Feature Engineering và lược đồ cơ sở dữ liệu.
-* 📋 [**docs/functional_specifications.md**](file:///c:/WindFarm/docs/functional_specifications.md): Đặc tả chi tiết từng tính năng: SCADA KPI, Bộ lọc sự kiện, In-Browser CSV Runner, Auto-polling và chế độ Responsive.
-* 🎬 [**docs/video_demo_script.md**](file:///c:/WindFarm/docs/video_demo_script.md): Kịch bản quay video demo dự án chuẩn 5-7 phút, phân cảnh chi tiết từng giây, lời thoại thuyết minh (voiceover) và checklist chuẩn bị trước khi bấm máy.
-* 🗺️ [**docs/plan_and_roadmap.md**](file:///c:/WindFarm/docs/plan_and_roadmap.md): Lịch sử quá trình thực hiện, các cải tiến UI/UX đã giải quyết và kế hoạch mở rộng tương lai.
+* 📐 [**docs/architecture.md**](file:///c:/WindFarm/docs/architecture.md): Microservices topology (Mermaid diagrams), dynamic feature engineering pipelines, and database schemas.
+* 📋 [**docs/functional_specifications.md**](file:///c:/WindFarm/docs/functional_specifications.md): Functional breakdown of SCADA KPI cards, event filters, in-browser CSV runner, and responsive layout behavior.
+* 🗺️ [**docs/plan_and_roadmap.md**](file:///c:/WindFarm/docs/plan_and_roadmap.md): Milestone development history, resolved technical challenges, and future roadmap.
 
 ---
 
-## 👥 Nhóm Tác Giả & Phân Công Nhiệm Vụ (HKT Team)
+## 👥 Team Members & Role Assignments
 
-Dự án được thực hiện bởi nhóm 3 thành viên:
+This project was developed by the 3-member **HKT Team**:
 
-| Thành viên | Vai trò chính | Chi tiết nhiệm vụ phụ trách |
+| Member | Primary Role | Core Responsibilities |
 | :--- | :--- | :--- |
-| **Đào Duy Long** | **ML Service & Datadog** | • Xây dựng và triển khai **ML Service** API (FastAPI - Port `8001`) nhận dữ liệu dự đoán bất thường.<br/>• Tích hợp hệ thống giám sát **Datadog APM**, thu thập Metrics và phát Alert Events khi phát hiện sự cố. |
-| **Đào Ngọc Hoa** | **Train Model (Machine Learning)** | • Khảo sát, xử lý dữ liệu và trích xuất đặc trưng tập dữ liệu cảm biến tuabin gió.<br/>• **Huấn luyện mô hình AI (Train Model)** `RandomForestClassifier` đạt độ chính xác cao và tối ưu lưu trữ dưới định dạng `.joblib`. |
-| **Đào Duy Hoàng** | **Backend & Frontend** | • Thiết kế & xây dựng **Backend Gateway** (FastAPI - Port `8000`), kết nối MongoDB Atlas, xác thực Bearer Token, Ingestion Pipeline & Dynamic Feature Engineering (Rolling 6h).<br/>• Phát triển toàn bộ **Frontend SCADA Console** (React 19 + TypeScript + Vite), công cụ In-Browser CSV Streamer, tối ưu hóa giao diện Responsive và modular hóa mã nguồn. |
+| **Long** | **ML Service & Datadog** | • Built and deployed the **ML Service** API (FastAPI - Port `8001`) for anomaly inference.<br/>• Integrated **Datadog APM**, metrics collection, and automated alert event triggers upon anomaly detection. |
+| **Hoa** | **Train Model (Machine Learning)** | • Researched, preprocessed, and engineered features from raw wind turbine sensor telemetry.<br/>• **Trained the AI model (Train Model)** using `RandomForestClassifier` with high accuracy and packaged the model artifact into `.joblib`. |
+| **Hoàng** | **Backend & Frontend** | • Designed and developed the **Backend Gateway** (FastAPI - Port `8000`), MongoDB Atlas connection, Bearer token authentication, ingestion pipeline, and dynamic feature engineering (6-hour rolling calculations).<br/>• Developed the complete **Frontend SCADA Console** (React 19 + TypeScript + Vite), in-browser CSV streaming engine, responsive UI design, and modularized code architecture. |

@@ -7,7 +7,6 @@ router = APIRouter(prefix="/api/v1/telemetry", tags=["Telemetry"])
 
 @router.post("", dependencies=[Depends(verify_token)])
 async def post_telemetry(payload: TelemetryInput):
-    # Gọi service thật
     result = await process_telemetry(payload)
     record = result["record"]
     ml_result = result.get("ml_result", {})

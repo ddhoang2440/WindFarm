@@ -1,11 +1,11 @@
 {
-    "name": "frontent-react-hoidanit",
+    "name": "Windfarm",
     "private": true,
     "version": "0.0.0",
     "type": "module",
     "author": {
-        "name": "hoidanit - Hỏi Dân IT",
-        "url": "https://hoidanit.vn"
+        "name": "Windfarm",
+        "url": "https://windfarm.com"
     },
     "scripts": {
         "dev": "vite",
