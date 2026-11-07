@@ -2,10 +2,11 @@
 
 Dự án giám sát hệ thống tuabin gió (WindFarm) theo kiến trúc Microservices, tích hợp Trí tuệ nhân tạo (AI) để phát hiện bất thường và giám sát trực quan qua Datadog.
 
-## 🏗️ Kiến trúc hệ thống
-Hệ thống bao gồm 2 server độc lập:
-1. **Backend (Hoàng):** Chạy ở cổng `8000`. Nhận dữ liệu, lưu trữ MongoDB, tính toán features phái sinh và cung cấp API thống kê.
-2. **ML Service (Long):** Chạy ở cổng `8001`. Nhận dữ liệu từ Backend, chạy mô hình AI (RandomForest) để dự đoán bất thường, và gửi cảnh báo lên Datadog.
+## 🏗️ Kiến trúc hệ thống & Phân công
+Hệ thống bao gồm các thành phần do 3 thành viên phụ trách:
+1. **Backend & Frontend (Đào Duy Hoàng):** Backend chạy ở cổng `8000` (FastAPI, MongoDB, tính toán features phái sinh, API thống kê) và Frontend SCADA Console (React 19).
+2. **ML Service & Datadog (Đào Duy Long):** Chạy ở cổng `8001` (FastAPI), nhận dữ liệu từ Backend, chạy mô hình AI để dự đoán bất thường và gửi cảnh báo lên Datadog.
+3. **Train Model AI (Đào Ngọc Hoa):** Xử lý tập dữ liệu cảm biến tuabin gió và huấn luyện mô hình Machine Learning (RandomForest) tối ưu xuất file `.joblib`.
 
 ## 🛠️ Công nghệ sử dụng
 *   **Backend:** Python, FastAPI, Beanie (MongoDB ODM), Motor.

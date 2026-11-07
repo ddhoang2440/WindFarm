@@ -293,8 +293,12 @@ WindFarm/
 
 ---
 
-## 👥 Nhóm Tác Giả & Phân Công Dự Án (HKT Team)
-* **Phan Minh Hoàng:** Phụ trách phát triển Kiến trúc Backend Gateway (FastAPI, MongoDB Atlas, Feature Engineering, Ingestion Pipeline).
-* **Trương Hữu Long:** Phụ trách Huấn luyện Mô hình Machine Learning (RandomForest), ML Service API và tích hợp giám sát Datadog.
-* **HKT Frontend & SCADA Engineering:** Thiết kế và hoàn thiện toàn bộ Giao diện SCADA Dashboard, In-Browser CSV Streaming Engine, tối ưu Responsive đa thiết bị và modular hóa kiến trúc mã nguồn.
+## 👥 Nhóm Tác Giả & Phân Công Nhiệm Vụ (HKT Team)
 
+Dự án được thực hiện bởi nhóm 3 thành viên:
+
+| Thành viên | Vai trò chính | Chi tiết nhiệm vụ phụ trách |
+| :--- | :--- | :--- |
+| **Đào Duy Long** | **ML Service & Datadog** | • Xây dựng và triển khai **ML Service** API (FastAPI - Port `8001`) nhận dữ liệu dự đoán bất thường.<br/>• Tích hợp hệ thống giám sát **Datadog APM**, thu thập Metrics và phát Alert Events khi phát hiện sự cố. |
+| **Đào Ngọc Hoa** | **Train Model (Machine Learning)** | • Khảo sát, xử lý dữ liệu và trích xuất đặc trưng tập dữ liệu cảm biến tuabin gió.<br/>• **Huấn luyện mô hình AI (Train Model)** `RandomForestClassifier` đạt độ chính xác cao và tối ưu lưu trữ dưới định dạng `.joblib`. |
+| **Đào Duy Hoàng** | **Backend & Frontend** | • Thiết kế & xây dựng **Backend Gateway** (FastAPI - Port `8000`), kết nối MongoDB Atlas, xác thực Bearer Token, Ingestion Pipeline & Dynamic Feature Engineering (Rolling 6h).<br/>• Phát triển toàn bộ **Frontend SCADA Console** (React 19 + TypeScript + Vite), công cụ In-Browser CSV Streamer, tối ưu hóa giao diện Responsive và modular hóa mã nguồn. |
